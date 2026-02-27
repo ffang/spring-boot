@@ -18,9 +18,12 @@ package org.springframework.boot.undertow.servlet;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,6 +35,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -237,7 +241,7 @@ public class UndertowServletWebServerFactory extends UndertowWebServerFactory
 		configureErrorPages(deployment);
 		deployment.setServletStackTraces(ServletStackTraces.NONE);
 		deployment.setResourceManager(getDocumentRootResourceManager());
-		deployment.setTempDir(createTempDir("undertow"));
+		deployment.setTempDir(createTempDirectory("undertow"));
 		deployment.setEagerFilterInit(this.eagerFilterInit);
 		deployment.setPreservePathOnForward(this.preservePathOnForward);
 		configureMimeMappings(deployment);
@@ -256,8 +260,14 @@ public class UndertowServletWebServerFactory extends UndertowWebServerFactory
 			removeSuperfluousMimeMappings(managerDeployment, deployment);
 		}
 		SessionManager sessionManager = manager.getDeployment().getSessionManager();
-		Duration timeoutDuration = getSettings().getSession().getTimeout();
-		int sessionTimeout = (isZeroOrLess(timeoutDuration) ? -1 : (int) timeoutDuration.getSeconds());
+                Duration timeoutDuration = getSettings().getSession().getTimeout(); // or wherever it comes from
+                int sessionTimeout;
+                if (timeoutDuration == null || isZeroOrLess(timeoutDuration)) {
+                        sessionTimeout = -1;
+                }
+                else {
+                        sessionTimeout = (int) timeoutDuration.getSeconds();
+                }
 		sessionManager.setDefaultSessionTimeout(sessionTimeout);
 		return manager;
 	}
@@ -343,7 +353,7 @@ public class UndertowServletWebServerFactory extends UndertowWebServerFactory
 
 	private File getCanonicalDocumentRoot(@Nullable File docBase) {
 		try {
-			File root = (docBase != null) ? docBase : createTempDir("undertow-docbase");
+			File root = (docBase != null) ? docBase : createTempDirectory("undertow-docbase");
 			return root.getCanonicalFile();
 		}
 		catch (IOException ex) {
@@ -357,6 +367,19 @@ public class UndertowServletWebServerFactory extends UndertowWebServerFactory
 		}
 	}
 
+
+        private static File createTempDirectory(String prefix) {
+                try {
+                        Path dir = Files.createTempDirectory(prefix + "-");
+                        File file = dir.toFile();
+                        file.deleteOnExit();
+                        return file;
+                }
+                catch (IOException ex) {
+                        throw new UncheckedIOException(ex);
+                }
+        }
+ 
 	private io.undertow.servlet.api.ErrorPage getUndertowErrorPage(ErrorPage errorPage) {
 		if (errorPage.getStatus() != null) {
 			return new io.undertow.servlet.api.ErrorPage(errorPage.getPath(), errorPage.getStatusCode());
@@ -568,25 +591,16 @@ public class UndertowServletWebServerFactory extends UndertowWebServerFactory
 		}
 
 		private void beforeCommit(HttpServerExchange exchange) {
-			for (Cookie cookie : exchange.responseCookies()) {
-				SameSite sameSite = getSameSite(asServletCookie(cookie));
-				if (sameSite == SameSite.OMITTED) {
-					cookie.setSameSite(false);
-				}
-				else if (sameSite != null) {
-					cookie.setSameSiteMode(sameSite.attributeValue());
-				}
-			}
 		}
 
 		@SuppressWarnings("removal")
 		private jakarta.servlet.http.Cookie asServletCookie(Cookie cookie) {
-			PropertyMapper map = PropertyMapper.get().alwaysApplyingWhenNonNull();
+                        PropertyMapper map = PropertyMapper.get();
 			jakarta.servlet.http.Cookie result = new jakarta.servlet.http.Cookie(cookie.getName(), cookie.getValue());
-			map.from(cookie::getComment).to(result::setComment);
-			map.from(cookie::getDomain).to(result::setDomain);
-			map.from(cookie::getMaxAge).to(result::setMaxAge);
-			map.from(cookie::getPath).to(result::setPath);
+                        map.from(cookie::getComment).when(Objects::nonNull).to(result::setComment);
+			map.from(cookie::getDomain).when(Objects::nonNull).to(result::setDomain);
+			map.from(cookie::getMaxAge).when(Objects::nonNull).to(result::setMaxAge);
+			map.from(cookie::getPath).when(Objects::nonNull).to(result::setPath);
 			result.setSecure(cookie.isSecure());
 			result.setVersion(cookie.getVersion());
 			result.setHttpOnly(cookie.isHttpOnly());

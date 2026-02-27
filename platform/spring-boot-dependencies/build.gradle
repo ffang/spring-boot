@@ -2779,7 +2779,7 @@ bom {
 		}
 	}
 	library("Versions Maven Plugin", "2.21.0") {
-	library("Undertow", "2.4.0.Beta2") {
+	library("Undertow", "2.5.0.Alpha1-SNAPSHOT") {
 		group("io.undertow") {
 			modules = [
 				"undertow-core",

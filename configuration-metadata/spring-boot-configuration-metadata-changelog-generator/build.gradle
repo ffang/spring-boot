@@ -136,7 +136,6 @@ def dependenciesOf(String version) {
 			"spring-boot-thymeleaf",
 			"spring-boot-tomcat",
 			"spring-boot-transaction",
-			"spring-boot-tracing",
 			"spring-boot-undertow",
 			"spring-boot-validation",
 			"spring-boot-web-server",

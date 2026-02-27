@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -78,52 +79,56 @@ public class UndertowWebServerFactoryCustomizer
 
 	@Override
 	public void customize(ConfigurableUndertowWebServerFactory factory) {
-		PropertyMapper map = PropertyMapper.get().alwaysApplyingWhenNonNull();
+                PropertyMapper map = PropertyMapper.get();
 		ServerOptions options = new ServerOptions(factory);
 		map.from(this.serverProperties::getMaxHttpRequestHeaderSize)
-			.asInt(DataSize::toBytes)
+                        .when(Objects::nonNull)
+                        .asInt(DataSize::toBytes)
 			.when(this::isPositive)
 			.to(options.option(UndertowOptions.MAX_HEADER_SIZE));
 		mapUndertowProperties(factory, options);
 		mapAccessLogProperties(factory);
-		map.from(this::getOrDeduceUseForwardHeaders).to(factory::setUseForwardHeaders);
+		map.from(this::getOrDeduceUseForwardHeaders).when(Objects::nonNull).to(factory::setUseForwardHeaders);
 	}
 
 	private void mapUndertowProperties(ConfigurableUndertowWebServerFactory factory, ServerOptions serverOptions) {
-		PropertyMapper map = PropertyMapper.get().alwaysApplyingWhenNonNull();
+		PropertyMapper map = PropertyMapper.get();
 		map.from(this.undertowProperties::getBufferSize)
-			.whenNonNull()
+                        .when(Objects::nonNull)
 			.asInt(DataSize::toBytes)
 			.to(factory::setBufferSize);
 		UndertowServerProperties.Threads threadProperties = this.undertowProperties.getThreads();
-		map.from(threadProperties::getIo).to(factory::setIoThreads);
-		map.from(threadProperties::getWorker).to(factory::setWorkerThreads);
-		map.from(this.undertowProperties::getDirectBuffers).to(factory::setUseDirectBuffers);
+		map.from(threadProperties::getIo).when(Objects::nonNull).to(factory::setIoThreads);
+		map.from(threadProperties::getWorker).when(Objects::nonNull).to(factory::setWorkerThreads);
+		map.from(this.undertowProperties::getDirectBuffers).when(Objects::nonNull).to(factory::setUseDirectBuffers);
 		map.from(this.undertowProperties::getMaxHttpPostSize)
 			.as(DataSize::toBytes)
 			.when(this::isPositive)
 			.to(serverOptions.option(UndertowOptions.MAX_ENTITY_SIZE));
-		map.from(this.undertowProperties::getMaxParameters).to(serverOptions.option(UndertowOptions.MAX_PARAMETERS));
-		map.from(this.undertowProperties::getMaxHeaders).to(serverOptions.option(UndertowOptions.MAX_HEADERS));
-		map.from(this.undertowProperties::getMaxCookies).to(serverOptions.option(UndertowOptions.MAX_COOKIES));
+		map.from(this.undertowProperties::getMaxParameters).when(Objects::nonNull).to(serverOptions.option(UndertowOptions.MAX_PARAMETERS));
+		map.from(this.undertowProperties::getMaxHeaders).when(Objects::nonNull).to(serverOptions.option(UndertowOptions.MAX_HEADERS));
+		map.from(this.undertowProperties::getMaxCookies).when(Objects::nonNull).to(serverOptions.option(UndertowOptions.MAX_COOKIES));
 		mapSlashProperty(this.undertowProperties, serverOptions);
-		map.from(this.undertowProperties::isDecodeUrl).to(serverOptions.option(UndertowOptions.DECODE_URL));
+		map.from(this.undertowProperties::isDecodeUrl).when(Objects::nonNull).to(serverOptions.option(UndertowOptions.DECODE_URL));
 		map.from(this.undertowProperties::getUrlCharset)
+                        .when(Objects::nonNull)
 			.as(Charset::name)
 			.to(serverOptions.option(UndertowOptions.URL_CHARSET));
 		map.from(this.undertowProperties::isAlwaysSetKeepAlive)
+                        .when(Objects::nonNull)
 			.to(serverOptions.option(UndertowOptions.ALWAYS_SET_KEEP_ALIVE));
 		map.from(this.undertowProperties::getNoRequestTimeout)
+                        .when(Objects::nonNull)
 			.asInt(Duration::toMillis)
 			.to(serverOptions.option(UndertowOptions.NO_REQUEST_TIMEOUT));
-		map.from(this.undertowProperties.getOptions()::getServer).to(serverOptions.forEach(serverOptions::option));
+		map.from(this.undertowProperties.getOptions()::getServer).when(Objects::nonNull).to(serverOptions.forEach(serverOptions::option));
 		SocketOptions socketOptions = new SocketOptions(factory);
-		map.from(this.undertowProperties.getOptions()::getSocket).to(socketOptions.forEach(socketOptions::option));
+		map.from(this.undertowProperties.getOptions()::getSocket).when(Objects::nonNull).to(socketOptions.forEach(socketOptions::option));
 	}
 
 	private void mapSlashProperty(UndertowServerProperties properties, ServerOptions serverOptions) {
-		PropertyMapper map = PropertyMapper.get().alwaysApplyingWhenNonNull();
-		map.from(properties::getDecodeSlash).to(serverOptions.option(UndertowOptions.DECODE_SLASH));
+		PropertyMapper map = PropertyMapper.get();
+		map.from(properties::getDecodeSlash).when(Objects::nonNull).to(serverOptions.option(UndertowOptions.DECODE_SLASH));
 
 	}
 
@@ -133,13 +138,13 @@ public class UndertowWebServerFactoryCustomizer
 
 	private void mapAccessLogProperties(ConfigurableUndertowWebServerFactory factory) {
 		Accesslog properties = this.undertowProperties.getAccesslog();
-		PropertyMapper map = PropertyMapper.get().alwaysApplyingWhenNonNull();
-		map.from(properties::isEnabled).to(factory::setAccessLogEnabled);
-		map.from(properties::getDir).to(factory::setAccessLogDirectory);
-		map.from(properties::getPattern).to(factory::setAccessLogPattern);
-		map.from(properties::getPrefix).to(factory::setAccessLogPrefix);
-		map.from(properties::getSuffix).to(factory::setAccessLogSuffix);
-		map.from(properties::isRotate).to(factory::setAccessLogRotate);
+		PropertyMapper map = PropertyMapper.get();
+		map.from(properties::isEnabled).when(Objects::nonNull).to(factory::setAccessLogEnabled);
+		map.from(properties::getDir).when(Objects::nonNull).to(factory::setAccessLogDirectory);
+		map.from(properties::getPattern).when(Objects::nonNull).to(factory::setAccessLogPattern);
+		map.from(properties::getPrefix).when(Objects::nonNull).to(factory::setAccessLogPrefix);
+		map.from(properties::getSuffix).when(Objects::nonNull).to(factory::setAccessLogSuffix);
+		map.from(properties::isRotate).when(Objects::nonNull).to(factory::setAccessLogRotate);
 	}
 
 	private boolean getOrDeduceUseForwardHeaders() {
