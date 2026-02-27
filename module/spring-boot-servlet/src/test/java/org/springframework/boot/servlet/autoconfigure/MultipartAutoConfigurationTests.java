@@ -35,6 +35,7 @@ import org.springframework.boot.testsupport.web.servlet.DirtiesUrlFactories;
 import org.springframework.boot.tomcat.autoconfigure.servlet.TomcatServletWebServerAutoConfiguration;
 import org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServer;
+import org.springframework.boot.undertow.servlet.UndertowServletWebServerFactory;
 import org.springframework.boot.web.server.autoconfigure.ServerProperties;
 import org.springframework.boot.web.server.servlet.context.AnnotationConfigServletWebServerApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -105,7 +106,8 @@ class MultipartAutoConfigurationTests {
 
 	static Stream<Arguments> webServerWithNoMultipartConfigurationArguments() {
 		return Stream.of(Arguments.of("Jetty", WebServerWithNoMultipartJetty.class),
-				Arguments.of("Tomcat", WebServerWithNoMultipartTomcat.class));
+				Arguments.of("Tomcat", WebServerWithNoMultipartTomcat.class),
+				Arguments.of("Undertow", WebServerWithNoMultipartUndertow.class));
 	}
 
 	@ParameterizedTest(name = "{0}")
@@ -121,7 +123,18 @@ class MultipartAutoConfigurationTests {
 
 	static Stream<Arguments> webServerWithAutomatedMultipartConfigurationArguments() {
 		return Stream.of(Arguments.of("Jetty", WebServerWithEverythingJetty.class),
-				Arguments.of("Tomcat", WebServerWithEverythingTomcat.class));
+				Arguments.of("Tomcat", WebServerWithEverythingTomcat.class),
+				Arguments.of("Undertow", WebServerWithEverythingUndertow.class));
+	}
+
+	@Test
+	void webServerWithNonAbsoluteMultipartLocationUndertowConfiguration() {
+		this.context = new AnnotationConfigServletWebServerApplicationContext(
+				WebServerWithNonAbsolutePathUndertow.class, BaseConfiguration.class);
+		this.context.getBean(MultipartConfigElement.class);
+		verifyServletWorks();
+		assertThat(this.context.getBean(StandardServletMultipartResolver.class))
+			.isSameAs(this.context.getBean(DispatcherServlet.class).getMultipartResolver());
 	}
 
 	@Test
@@ -242,6 +255,21 @@ class MultipartAutoConfigurationTests {
 	}
 
 	@Configuration(proxyBeanMethods = false)
+	static class WebServerWithNoMultipartUndertow {
+
+		@Bean
+		UndertowServletWebServerFactory webServerFactory() {
+			return new UndertowServletWebServerFactory();
+		}
+
+		@Bean
+		WebController controller() {
+			return new WebController();
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
 	@Import({ TomcatServletWebServerAutoConfiguration.class, MultipartAutoConfiguration.class })
 	@EnableConfigurationProperties(MultipartProperties.class)
 	static class BaseConfiguration {
@@ -307,6 +335,48 @@ class MultipartAutoConfigurationTests {
 		@Bean
 		TomcatServletWebServerFactory webServerFactory() {
 			return new TomcatServletWebServerFactory();
+		}
+
+		@Bean
+		WebController webController() {
+			return new WebController();
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	@EnableWebMvc
+	static class WebServerWithEverythingUndertow {
+
+		@Bean
+		MultipartConfigElement multipartConfigElement() {
+			return new MultipartConfigElement("");
+		}
+
+		@Bean
+		UndertowServletWebServerFactory webServerFactory() {
+			return new UndertowServletWebServerFactory();
+		}
+
+		@Bean
+		WebController webController() {
+			return new WebController();
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	@EnableWebMvc
+	static class WebServerWithNonAbsolutePathUndertow {
+
+		@Bean
+		MultipartConfigElement multipartConfigElement() {
+			return new MultipartConfigElement("test/not-absolute");
+		}
+
+		@Bean
+		UndertowServletWebServerFactory webServerFactory() {
+			return new UndertowServletWebServerFactory();
 		}
 
 		@Bean

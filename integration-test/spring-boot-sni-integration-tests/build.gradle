@@ -32,6 +32,7 @@ dependencies {
 	app project(path: ":starter:spring-boot-starter-actuator", configuration: "mavenRepository")
 	app project(path: ":starter:spring-boot-starter-tomcat", configuration: "mavenRepository")
 	app project(path: ":starter:spring-boot-starter-webmvc", configuration: "mavenRepository")
+	app project(path: ":starter:spring-boot-starter-undertow", configuration: "mavenRepository")
 	app project(path: ":starter:spring-boot-starter-webflux", configuration: "mavenRepository")
 	app project(path: ":build-plugin:spring-boot-gradle-plugin", configuration: "mavenRepository")
 	app project(path: ":module:spring-boot-webflux", configuration: "mavenRepository")
@@ -59,7 +60,8 @@ tasks.register("buildReactiveServerApps", GradleBuild) {
 	startParameter.buildCacheEnabled = false
 	tasks = [
 			"nettyServerApp",
-			"tomcatServerApp"
+			"tomcatServerApp",
+			"undertowServerApp"
 	]
 }
 
@@ -73,7 +75,8 @@ tasks.register("buildServletServerApps", GradleBuild) {
 	dir = layout.buildDirectory.dir("spring-boot-sni-servlet-app")
 	startParameter.buildCacheEnabled = false
 	tasks = [
-			"tomcatServerApp"
+			"tomcatServerApp",
+			"undertowServerApp"
 	]
 }
 
@@ -93,7 +96,9 @@ intTest {
 	inputs.files(
 			layout.buildDirectory.file("spring-boot-server-tests-app/build/libs/spring-boot-server-tests-app-netty-reactive.jar"),
 			layout.buildDirectory.file("spring-boot-server-tests-app/build/libs/spring-boot-server-tests-app-tomcat-reactive.jar"),
-			layout.buildDirectory.file("spring-boot-server-tests-app/build/libs/spring-boot-server-tests-app-tomcat-servlet.jar")
+			layout.buildDirectory.file("spring-boot-server-tests-app/build/libs/spring-boot-server-tests-app-tomcat-servlet.jar"),
+			layout.buildDirectory.file("spring-boot-server-tests-app/build/libs/spring-boot-server-tests-app-undertow-reactive.jar"),
+			layout.buildDirectory.file("spring-boot-server-tests-app/build/libs/spring-boot-server-tests-app-undertow-servlet.jar")
 	)
 			.withPropertyName("applicationArchives")
 			.withPathSensitivity(PathSensitivity.RELATIVE)

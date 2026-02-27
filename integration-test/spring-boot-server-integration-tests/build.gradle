@@ -38,6 +38,7 @@ dependencies {
 	testRepository(project(path: ":starter:spring-boot-starter-jackson", configuration: "mavenRepository"))
 	testRepository(project(path: ":starter:spring-boot-starter-parent", configuration: "mavenRepository"))
 	testRepository(project(path: ":starter:spring-boot-starter-tomcat", configuration: "mavenRepository"))
+	testRepository(project(path: ":starter:spring-boot-starter-undertow", configuration: "mavenRepository"))
 
 	testRuntimeOnly(project(":starter:spring-boot-starter-logging"))
 }
@@ -62,7 +63,9 @@ tasks.register("buildApps", GradleBuild) {
 		"jettyBootJar",
 		"jettyBootWar",
 		"tomcatBootJar",
-		"tomcatBootWar"
+		"tomcatBootWar",
+		"undertowBootJar",
+		"undertowBootWar"
 	]
 }
 
@@ -72,7 +75,9 @@ intTest {
 			layout.buildDirectory.file("spring-boot-server-tests-app/build/libs/spring-boot-server-tests-app-jetty.war"),
 			layout.buildDirectory.file("spring-boot-server-tests-app/build/libs/spring-boot-server-tests-app-resources.jar"),
 			layout.buildDirectory.file("spring-boot-server-tests-app/build/libs/spring-boot-server-tests-app-tomcat.jar"),
-			layout.buildDirectory.file("spring-boot-server-tests-app/build/libs/spring-boot-server-tests-app-tomcat.war")
+			layout.buildDirectory.file("spring-boot-server-tests-app/build/libs/spring-boot-server-tests-app-tomcat.war"),
+			layout.buildDirectory.file("spring-boot-server-tests-app/build/libs/spring-boot-server-tests-app-undertow.jar"),
+			layout.buildDirectory.file("spring-boot-server-tests-app/build/libs/spring-boot-server-tests-app-undertow.war")
 	)
 		.withPropertyName("applicationArchives")
 		.withPathSensitivity(PathSensitivity.RELATIVE)

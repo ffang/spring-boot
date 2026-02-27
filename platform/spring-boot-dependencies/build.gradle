@@ -2296,6 +2296,7 @@ bom {
 				"spring-boot-starter-thymeleaf-test",
 				"spring-boot-starter-tomcat",
 				"spring-boot-starter-tomcat-runtime",
+				"spring-boot-starter-undertow",
 				"spring-boot-starter-validation",
 				"spring-boot-starter-validation-test",
 				"spring-boot-starter-web",
@@ -2318,6 +2319,8 @@ bom {
 				"spring-boot-thymeleaf",
 				"spring-boot-tomcat",
 				"spring-boot-transaction",
+				"spring-boot-tracing",
+				"spring-boot-undertow",
 				"spring-boot-validation",
 				"spring-boot-web-server",
 				"spring-boot-web-server-test",
@@ -2776,6 +2779,18 @@ bom {
 		}
 	}
 	library("Versions Maven Plugin", "2.21.0") {
+	library("Undertow", "2.4.0.Beta2") {
+		group("io.undertow") {
+			modules = [
+				"undertow-core",
+				"undertow-servlet",
+				"undertow-websockets-jsr"
+			]
+		}
+		links {
+			releaseNotes("https://github.com/undertow-io/undertow/releases/tag/{version}")
+		}
+	}
 		group("org.codehaus.mojo") {
 			plugins = [
 				"versions-maven-plugin"

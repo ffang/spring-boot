@@ -39,6 +39,9 @@ configurations {
 	tomcat {
 		extendsFrom(app)
 	}
+	undertow {
+		extendsFrom(app)
+	}
 }
 
 dependencies {
@@ -55,9 +58,10 @@ dependencies {
 		exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
 	}
 	tomcat("org.springframework.boot:spring-boot-starter-tomcat")
+	undertow("org.springframework.boot:spring-boot-starter-undertow")
 }
 
-["tomcat"].each { webServer ->
+["tomcat", "undertow"].each { webServer ->
 	def configurer = { task ->
 		task.mainClass = "org.springframework.boot.sni.server.SniServerApplication"
 		task.classpath = configurations.getByName(webServer)

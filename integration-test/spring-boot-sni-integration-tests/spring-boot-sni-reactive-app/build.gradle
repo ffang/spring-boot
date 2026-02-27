@@ -42,6 +42,9 @@ configurations {
 	tomcat {
 		extendsFrom(app)
 	}
+	undertow {
+		extendsFrom(app)
+	}
 }
 
 dependencies {
@@ -56,9 +59,10 @@ dependencies {
 	app("org.springframework.boot:spring-boot-webflux")
 	netty("org.springframework.boot:spring-boot-starter-webflux")
 	tomcat("org.springframework.boot:spring-boot-starter-tomcat")
+	undertow("org.springframework.boot:spring-boot-starter-undertow")
 }
 
-["netty", "tomcat"].each { webServer ->
+["netty", "tomcat", "undertow"].each { webServer ->
 	def configurer = { task ->
 		task.mainClass = "org.springframework.boot.sni.server.SniServerApplication"
 		task.classpath = configurations.getByName(webServer)
