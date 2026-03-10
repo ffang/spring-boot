@@ -591,6 +591,12 @@ public class UndertowServletWebServerFactory extends UndertowWebServerFactory
 		}
 
 		private void beforeCommit(HttpServerExchange exchange) {
+                        for (Cookie cookie : exchange.responseCookies()) {
+                                SameSite sameSite = getSameSite(asServletCookie(cookie));
+                                if (sameSite != null && sameSite != SameSite.OMITTED) {
+                                        cookie.setSameSiteMode(sameSite.attributeValue());
+                                }
+                        }
 		}
 
 		@SuppressWarnings("removal")
