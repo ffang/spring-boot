@@ -86,6 +86,12 @@
       <version>4.1.0-M1</version>
     </dependency>
 
+    <dependency>
+      <groupId>io.projectreactor</groupId>
+      <artifactId>reactor-core</artifactId>
+      <version>3.6.5</version> <!-- or latest compatible with your stack -->
+    </dependency>
+   
     <!-- Usually needed if you compile servlet-specific code -->
     <dependency>
       <groupId>jakarta.servlet</groupId>
